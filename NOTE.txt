@@ -65,3 +65,58 @@ Configured npm to use Artifactory: npm config set registry https://elilillyco.jf
 Authenticated using npm login (browser-based SSO), then installs started working.
 Verified setup by running npm install lodash and successfully created Next.js app.
 
+=====================================================
+  GIT WORKFLOW NOTES (in order, with what each does)
+=====================================================
+
+--- ONE-TIME SETUP (per repo) ---
+git init                          # turn current folder into a Git repo (creates .git)
+git config user.name "Name"       # who commits show up as
+git config user.email "x@y.com"   # email tied to commits
+git remote add origin <repo-url>  # link local repo to the GitHub repo
+
+--- THE CORE LOOP (repeat every time you make changes) ---
+git status                        # see what changed / what's staged (ALWAYS run first)
+git add .                         # stage ALL changes for the next commit
+git commit -m "message"           # snapshot staged changes locally
+git push                          # upload commits to GitHub
+
+--- FIRST PUSH OF A BRANCH ---
+git branch -M main                # rename current branch to 'main' (match GitHub default)
+git push -u origin main           # push AND set tracking (future pushes = just 'git push')
+
+--- WHEN PUSH IS REJECTED (remote has commits you don't) ---
+git pull origin main                              # fetch + merge remote changes first
+git pull origin main --allow-unrelated-histories  # same, when histories started separately
+# (if a merge editor opens: save & close to finish the merge)
+git push                                          # now push succeeds
+
+--- STOP TRACKING A FILE (but keep it on disk) ---
+git rm --cached <file>            # remove from repo, file stays locally
+# then add <file> to .gitignore so it won't come back
+git add .gitignore
+git commit -m "stop tracking <file>"
+git push
+
+--- FIX: EMBEDDED REPO ("adding embedded git repository") ---
+# happens when a subfolder has its own .git inside the main repo
+Remove-Item -Recurse -Force <subfolder>\.git   # delete inner .git (code is safe)
+git rm --cached -f <subfolder>                  # force-remove the stale pointer
+git add .                                       # re-add the REAL files
+git status                                       # confirm: individual files, not one line
+
+--- .gitignore RULES (concept) ---
+# - only affects UNtracked files; already-committed files need 'git rm --cached' first
+# - scope = its own folder and everything below it
+# - root-level files (outside subfolders) need a ROOT .gitignore
+# typical contents:
+#   venv/  node_modules/  __pycache__/  .next/  .env  .env.local  *.pyc
+
+--- USEFUL CHECKS ---
+git status                        # current state (the source of truth — trust over the GUI)
+git log --oneline                 # list past commits, newest first
+git branch                        # show branches, * marks current
+
+--- AUTH NOTE ---
+# pushes use a browser sign-in (Git Credential Manager) or a Personal Access Token,
+# NOT your GitHub password (passwords are disabled for git).
