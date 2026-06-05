@@ -1,0 +1,67 @@
+=========================================================
+ STATUSPULSE QUICK NOTES (CONCISE)
+=========================================================
+
+--- 1) SETUP + RUN ---
+cd C:\Users\L132478\test-application\statuspulse\backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --reload
+
+What each does:
+- Creates and activates isolated Python environment.
+- Installs backend dependencies via python -m pip (policy-safe).
+- Starts FastAPI app on http://127.0.0.1:8000.
+
+--- 2) SWAGGER UI (AUTO API PAGE) ---
+Open: http://127.0.0.1:8000/docs
+
+What it reflects from code:
+- Each endpoint row = one route in main.py (@app.get/@app.post).
+- Input boxes = function parameters (path/body models).
+- Schemas section = Pydantic models (Service, WebhookPayload, StatusEnum).
+- Top "Server response" = live result of your last Execute.
+- Bottom "Responses" = possible documented responses (static reference).
+
+--- 3) TEST FLOW (STEP BY STEP) ---
+1. GET /services -> expect 200 and list of jira, github, email.
+2. GET /services/{service_id} with jira -> expect 200.
+3. GET /services/{service_id} with unknown id (ex: google) -> expect 404.
+4. POST /webhook/status with:
+	{"service_id":"jira","status":"down"}
+	-> expect 201.
+5. GET /services/jira again -> status should now be down.
+6. POST invalid status (ex: purple) -> expect real 422 validation error.
+
+--- 4) POWERSHELL API COMMANDS ---
+GET all services:
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/services" -Method Get -Headers @{accept="application/json"}
+
+GET one service:
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/services/jira" -Method Get
+
+POST status update:
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/webhook/status" -Method Post -ContentType "application/json" -Body '{"service_id":"jira","status":"down"}'
+
+Note on curl in PowerShell:
+- curl often maps to Invoke-WebRequest.
+- Use curl.exe for native curl syntax if needed.
+
+--- 5) CURRENT BACKEND DATA BEHAVIOR ---
+- Data source right now is in-memory dictionary SERVICES in main.py.
+- jira/github/email are seeded at app startup from code.
+- email is degraded because seed data sets it that way.
+- last_updated is event time (startup or webhook update time), not "code written time".
+- Restarting server resets data to seeded values (not durable yet).
+
+--- 6) TROUBLESHOOT ---
+If Swagger shows "Failed to fetch":
+- Backend is usually not running.
+- Restart uvicorn and refresh /docs.
+
+Artifactory is required in Lilly as public npm (registry.npmjs.org) is blocked via DNS policies.
+Configured npm to use Artifactory: npm config set registry https://elilillyco.jfrog.io/artifactory/api/npm/npm/
+Authenticated using npm login (browser-based SSO), then installs started working.
+Verified setup by running npm install lodash and successfully created Next.js app.
+
