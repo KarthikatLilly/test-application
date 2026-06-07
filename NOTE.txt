@@ -7,7 +7,8 @@ cd C:\Users\L132478\test-application\statuspulse\backend
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python -m uvicorn main:app --reload
+
+restarting the backend: python -m uvicorn main:app --reload  
 
 What each does:
 - Creates and activates isolated Python environment.
@@ -120,3 +121,4 @@ git branch                        # show branches, * marks current
 --- AUTH NOTE ---
 # pushes use a browser sign-in (Git Credential Manager) or a Personal Access Token,
 # NOT your GitHub password (passwords are disabled for git).
+

@@ -1,0 +1,64 @@
+STATUSPULSE SETUP TROUBLESHOOTING
+
+1. Docker Desktop blocked by Lilly policy.
+   Fix: switched to Podman, an IT-approved container engine compatible with Docker commands.
+
+2. WSL too old, update needed admin rights.
+   Fix: IT ran wsl --update (to 2.7.3); WSL2 is required under Podman.
+
+3. Windows UAC demanded admin username and password I don't have.
+   Fix: did not attempt to bypass; routed the elevation to IT.
+
+4. Node.js installer offered to auto-install Chocolatey and build tools.
+   Fix: unchecked it; those pull from blocked public sources and the JS stack does not need them.
+
+5. Docker/Podman install config options (provider, container type).
+   Fix: chose WSL2 provider with Linux containers (no per-operation admin needed).
+
+6. Almost installed Podman Desktop GUI thinking it was a newer Podman.
+   Fix: skipped it; it is an optional GUI on the same engine, the CLI already worked.
+
+7. Looked for Podman v6 for an auto-CA flag.
+   Fix: v6 is not released; abandoned the version chase and trusted the CA manually instead.
+
+8. Podman could not pull images, certificate signed by unknown authority.
+   Cause: the Linux guest did not trust Lilly's corporate CA (TLS inspection).
+   Fix: used tls-verify false as a local-dev bypass.
+
+9. pip blocked, public PyPI cut off.
+   Cause: Lilly migrated Python packages to Artifactory; direct PyPI is blocked.
+   Fix: configured pip to use the Lilly Artifactory mirror.
+
+10. npm blocked, registry.npmjs.org not found.
+    Cause: same restriction for Node packages.
+    Fix: pointed npm at the Lilly Artifactory npm mirror and authenticated with npm login.
+
+11. create-next-app refused, directory not empty.
+    Cause: leftover files from an npm connectivity test.
+    Fix: deleted the test leftovers and re-ran the scaffold.
+
+12. Frontend could not call backend, CORS failed.
+    Cause: page loaded from the 172.x IP but backend only allowed localhost.
+    Fix: used localhost:3000 and widened the allowed origins.
+
+13. Git embedded repository warning.
+    Cause: a leftover .git inside statuspulse made it a nested repo, so code would not upload.
+    Fix: deleted the inner .git, removed the cached pointer, re-added the real files.
+
+14. Git push rejected, divergent histories.
+    Cause: local code commit and remote README commit had unrelated histories.
+    Fix: git pull with allow-unrelated-histories to merge, then pushed.
+
+15. .gitignore did not remove an already committed file.
+    Cause: gitignore only ignores untracked files, and it was in the wrong folder.
+    Fix: git rm cached on the file plus a root-level .gitignore.
+
+16. Health checker HTTP requests failed, certificate verify failed.
+    Cause: the HTTP client did not trust Lilly's TLS-inspection CA, so live sites showed down.
+    Fix: env-gated verify false for local dev; production should trust the corporate CA bundle.
+
+ROOT PATTERN
+Items 8, 9, 10, and 16 share one cause: Lilly's corporate TLS-inspection proxy with a
+private CA that tools do not trust by default. The fix is always either point the tool at
+the Lilly Artifactory mirror or trust the corporate CA. Items 2 and 3 are admin-rights
+limits (route to IT). Items 13, 14, 15 are standard Git index, history, and scope rules.
