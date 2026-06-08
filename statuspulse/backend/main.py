@@ -4,8 +4,11 @@ from enum import Enum
 
 import asyncio
 import httpx
+import json
 import os
 import time
+
+import redis
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -71,6 +74,46 @@ def get_session():
         raise
     finally:
         session.close()
+
+
+# ---------------------------------------------------------------------------
+# Redis setup — read host/port from env so dev and prod can differ
+# decode_responses=True means get() returns str, not bytes
+# ---------------------------------------------------------------------------
+CACHE_KEY_SERVICES = "services:all"
+CACHE_TTL = 10  # seconds — safety net in case invalidation is ever missed
+
+redis_client = redis.Redis(
+    host=os.getenv("REDIS_HOST", "localhost"),
+    port=int(os.getenv("REDIS_PORT", 6379)),
+    decode_responses=True,
+)
+
+
+def cache_get(key: str) -> str | None:
+    """Return cached value or None. Logs a warning and returns None if Redis is down."""
+    try:
+        return redis_client.get(key)
+    except redis.RedisError as exc:
+        print(f"[cache] WARNING: Redis unavailable ({exc}), falling back to DB")
+        return None
+
+
+def cache_set(key: str, value: str, ex: int) -> None:
+    """Set a cache key with TTL. Silently skips if Redis is down."""
+    try:
+        redis_client.set(key, value, ex=ex)
+    except redis.RedisError as exc:
+        print(f"[cache] WARNING: Redis unavailable ({exc}), skipping cache set")
+
+
+def cache_delete(key: str) -> None:
+    """Delete a cache key. Silently skips if Redis is down."""
+    try:
+        redis_client.delete(key)
+        print(f"CACHE INVALIDATED: {key}")
+    except redis.RedisError as exc:
+        print(f"[cache] WARNING: Redis unavailable ({exc}), skipping cache invalidation")
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +225,9 @@ async def check_service(client: httpx.AsyncClient, service_id: str, check_url: s
             checked_at=now,
         ))
 
+    # invalidation is the primary freshness mechanism; TTL is a safety net
+    cache_delete(CACHE_KEY_SERVICES)
+
 
 async def health_check_loop() -> None:
     """Run forever: check every auto-monitored service every 30 seconds."""
@@ -252,9 +298,22 @@ def health():
 
 @app.get("/services", response_model=list[Service])
 def list_services():
+    # cache-aside: check Redis first; on a miss, load from DB and populate cache.
+    # Invalidation (DELETE after writes) is the primary freshness mechanism.
+    # The TTL is a safety net only — it catches any write path that forgets to invalidate.
+    cached = cache_get(CACHE_KEY_SERVICES)
+    if cached is not None:
+        print(f"CACHE HIT: {CACHE_KEY_SERVICES}")
+        return json.loads(cached)
+
+    print(f"CACHE MISS: {CACHE_KEY_SERVICES} — fetched from DB")
     with get_session() as session:
         rows = session.query(ServiceRow).all()
-        return [Service.model_validate(r) for r in rows]
+        services = [Service.model_validate(r) for r in rows]
+
+    serialized = json.dumps([s.model_dump(mode="json") for s in services])
+    cache_set(CACHE_KEY_SERVICES, serialized, ex=CACHE_TTL)
+    return services
 
 
 @app.get("/services/{service_id}", response_model=Service)
@@ -331,4 +390,5 @@ def receive_webhook(payload: WebhookPayload):
             checked_at=now,
         ))
 
+    cache_delete(CACHE_KEY_SERVICES)
     return {"received": True, "service_id": payload.service_id, "status": payload.status}
