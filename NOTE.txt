@@ -21,6 +21,24 @@ What each does:
 --- 2) SWAGGER UI (AUTO API PAGE) ---
 Open: http://127.0.0.1:8000/docs
 
+--- 2A) LOCAL LINKS + WHERE TO TEST ---
+Run by hand in browser Swagger UI:
+- http://127.0.0.1:8000/docs  (main test location)
+
+Direct backend URLs (quick checks):
+- http://127.0.0.1:8000/health
+- http://127.0.0.1:8000/services
+- http://127.0.0.1:8000/services/google/uptime?hours=24
+- http://127.0.0.1:8000/services/google/history?limit=20
+- http://127.0.0.1:8000/cache/stats
+
+Frontend local URL:
+- http://localhost:3000
+
+What to use where:
+- Use /docs for Try it out + Execute and response code/body checks.
+- Use PowerShell for repeatable command-based tests (Invoke-RestMethod).
+
 What it reflects from code:
 - Each endpoint row = one route in main.py (@app.get/@app.post).
 - Input boxes = function parameters (path/body models).
@@ -37,6 +55,9 @@ What it reflects from code:
 	-> expect 201.
 5. GET /services/jira again -> status should now be down.
 6. POST invalid status (ex: purple) -> expect real 422 validation error.
+7. GET /services/google/uptime?hours=24 -> verifies uptime calculation from collected checks.
+8. GET /services/google/history?limit=20 -> verifies recent check history entries.
+9. GET /cache/stats -> verifies cache hits/misses counters.
 
 --- 4) POWERSHELL API COMMANDS ---
 GET all services:
