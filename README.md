@@ -14,7 +14,7 @@ monitoring tool ──POST /webhook/status──▶  FastAPI backend  ──GET 
    (simulated)                            (in-memory store)                    (live, auto-refresh)
 ```
 
-- **Backend** — Python + FastAPI, run by Uvicorn on port 8000. Holds service status, exposes read endpoints and a webhook write endpoint, validates input with Pydantic, self-documents at `/docs`.
+- **Backend** — Python + FastAPI, run by Uvicorn on port 8001. Holds service status, exposes read endpoints and a webhook write endpoint, validates input with Pydantic, self-documents at `/docs`.
 - **Frontend** — Next.js (TypeScript + Tailwind) on port 3000. Fetches `/services`, renders colored status cards, auto-refreshes every 10s, handles loading and error states, reads the backend URL from an env var.
 
 ## Tech stack
@@ -36,9 +36,9 @@ Two servers, two terminals.
 ```
 cd statuspulse/backend
 .\venv\Scripts\Activate.ps1      # Windows  (Mac/Linux: source venv/bin/activate)
-python -m uvicorn main:app --reload
+.\run.ps1
 ```
-Backend runs at http://localhost:8000 — interactive API docs at http://localhost:8000/docs
+Backend runs at http://localhost:8001 — interactive API docs at http://localhost:8001/docs
 
 **Frontend:**
 ```
@@ -49,7 +49,7 @@ Frontend runs at http://localhost:3000
 
 Create `statuspulse/frontend/.env.local` with:
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 ```
 
 ## Concepts demonstrated

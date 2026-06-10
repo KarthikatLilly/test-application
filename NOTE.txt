@@ -8,7 +8,7 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 
-restarting the backend: python -m uvicorn main:app --reload  
+restarting the backend: .\run.ps1  
 
 starting frontend: npm run dev 
 
@@ -16,21 +16,21 @@ starting frontend: npm run dev
 What each does:
 - Creates and activates isolated Python environment.
 - Installs backend dependencies via python -m pip (policy-safe).
-- Starts FastAPI app on http://127.0.0.1:8000.
+- Starts FastAPI app on http://127.0.0.1:8001.
 
 --- 2) SWAGGER UI (AUTO API PAGE) ---
-Open: http://127.0.0.1:8000/docs
+Open: http://127.0.0.1:8001/docs
 
 --- 2A) LOCAL LINKS + WHERE TO TEST ---
 Run by hand in browser Swagger UI:
-- http://127.0.0.1:8000/docs  (main test location)
+- http://127.0.0.1:8001/docs  (main test location)
 
 Direct backend URLs (quick checks):
-- http://127.0.0.1:8000/health
-- http://127.0.0.1:8000/services
-- http://127.0.0.1:8000/services/google/uptime?hours=24
-- http://127.0.0.1:8000/services/google/history?limit=20
-- http://127.0.0.1:8000/cache/stats
+- http://127.0.0.1:8001/health
+- http://127.0.0.1:8001/services
+- http://127.0.0.1:8001/services/google/uptime?hours=24
+- http://127.0.0.1:8001/services/google/history?limit=20
+- http://127.0.0.1:8001/cache/stats
 
 Frontend local URL:
 - http://localhost:3000
@@ -61,13 +61,13 @@ What it reflects from code:
 
 --- 4) POWERSHELL API COMMANDS ---
 GET all services:
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/services" -Method Get -Headers @{accept="application/json"}
+Invoke-RestMethod -Uri "http://127.0.0.1:8001/services" -Method Get -Headers @{accept="application/json"}
 
 GET one service:
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/services/jira" -Method Get
+Invoke-RestMethod -Uri "http://127.0.0.1:8001/services/jira" -Method Get
 
 POST status update:
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/webhook/status" -Method Post -ContentType "application/json" -Body '{"service_id":"jira","status":"down"}'
+Invoke-RestMethod -Uri "http://127.0.0.1:8001/webhook/status" -Method Post -ContentType "application/json" -Body '{"service_id":"jira","status":"down"}'
 
 Note on curl in PowerShell:
 - curl often maps to Invoke-WebRequest.
