@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd frontend
+          cd statuspulse/frontend
           npm install
 
       - name: Lint
