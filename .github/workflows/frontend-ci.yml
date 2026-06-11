@@ -1,0 +1,52 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Enterprise mirror example:
+      # NPM_REGISTRY_URL: https://elilillyco.jfrog.io/artifactory/api/npm/npm/
+      # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_REGISTRY_URL: https://registry.npmjs.org/
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Configure npm registry
+        run: |
+          npm config set registry "$NPM_REGISTRY_URL"
+
+      - name: Install dependencies
+        run: |
+          cd statuspulse/frontend
+          npm ci
+
+      - name: Lint
+        run: |
+          cd statuspulse/frontend
+          npm run lint
+
+      - name: Build
+        run: |
+          cd statuspulse/frontend
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: statuspulse/frontend/.next/
