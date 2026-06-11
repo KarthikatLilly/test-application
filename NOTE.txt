@@ -12,6 +12,10 @@ restarting the backend: .\run.ps1
 
 starting frontend: npm run dev 
 
+$env:HEALTHCHECK_VERIFY_SSL="false"; python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+(HEALTHCHECK_VERIFY_SSL=false tells your backend health-checker to skip TLS certificate validation when it makes outbound HTTPS checks
+ (for example to Google/GitHub check URLs)), else the issue
+  Connection failed: ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local 
 
 What each does:
 - Creates and activates isolated Python environment.
