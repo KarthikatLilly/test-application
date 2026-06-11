@@ -13,8 +13,10 @@ jobs:
       contents: read
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      NPM_REGISTRY_URL: https://elilillyco.jfrog.io/artifactory/api/npm/npm/
+      # Enterprise mirror example:
+      # NPM_REGISTRY_URL: https://elilillyco.jfrog.io/artifactory/api/npm/npm/
+      # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_REGISTRY_URL: https://registry.npmjs.org/
 
     steps:
       - uses: actions/checkout@v6
@@ -23,11 +25,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "22"
-
-      - name: Configure npm authentication
-        if: ${{ env.NPM_TOKEN != '' }}
-        run: |
-          npm config set "//elilillyco.jfrog.io/artifactory/api/npm/npm/:_authToken" "$NPM_TOKEN"
 
       - name: Configure npm registry
         run: |
