@@ -25,16 +25,16 @@ jobs:
 
       - name: Lint
         run: |
-          cd frontend
+          cd statuspulse/frontend
           npm run lint
 
       - name: Build
         run: |
-          cd frontend
+          cd statuspulse/frontend
           npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: frontend/.next/
+          path: statuspulse/frontend/.next/
