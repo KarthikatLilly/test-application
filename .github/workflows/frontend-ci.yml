@@ -19,6 +19,7 @@ jobs:
           node-version: "20"
 
       - name: Configure npm authentication
+        if: ${{ secrets.NPM_TOKEN != '' }}
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
