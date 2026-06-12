@@ -8,26 +8,35 @@ on:
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
-    environment: dev
+    environment:
+      name: dev
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to dev
-        run: echo "Deploying to DEV"
+        run: |
+          echo "Deploying to ${{ secrets.APP_ENV }}"
+          echo "API: ${{ secrets.API_URL }}"
 
   deploy-qa:
     runs-on: ubuntu-latest
     needs: deploy-dev
-    environment: qa
+    environment:
+      name: qa
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to QA
-        run: echo "Deploying to QA"
+        run: |
+          echo "Deploying to ${{ secrets.APP_ENV }}"
+          echo "API: ${{ secrets.API_URL }}"
 
   deploy-prod:
     runs-on: ubuntu-latest
     needs: deploy-qa
-    environment: prod
+    environment:
+      name: prod
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to prod
-        run: echo "Deploying to PROD"
+        run: |
+          echo "Deploying to ${{ secrets.APP_ENV }}"
+          echo "API: ${{ secrets.API_URL }}"
